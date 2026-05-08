@@ -9,9 +9,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import ro.go.stecker.optigraph.ui.screens.MainScreen
+import ro.go.stecker.optigraph.ui.screens.SideMenu
 
 enum class GraphScreens {
-    MainScreen
+    MainScreen,
+    SideMenu
 }
 
 @Composable
@@ -43,6 +45,10 @@ fun GraphNavHost(navController: NavHostController) {
     ) {
         composable(route = GraphScreens.MainScreen.name) {
             MainScreen()
+        }
+
+        composable(route = GraphScreens.SideMenu.name) {
+            SideMenu()
         }
     }
 }
