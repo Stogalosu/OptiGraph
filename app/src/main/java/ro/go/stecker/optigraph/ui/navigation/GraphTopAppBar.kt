@@ -1,4 +1,4 @@
-package ro.go.stecker.optigraph.ui
+package ro.go.stecker.optigraph.ui.navigation
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text

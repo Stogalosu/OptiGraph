@@ -1,5 +1,6 @@
-package ro.go.stecker.optigraph.ui.screens
+package ro.go.stecker.optigraph.ui.screens.main
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,15 +8,16 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,19 +32,27 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import ro.go.stecker.optigraph.R
-import ro.go.stecker.optigraph.ui.GraphTopAppBar
+import ro.go.stecker.optigraph.data.UiState
+import ro.go.stecker.optigraph.ui.GraphViewModel
 import ro.go.stecker.optigraph.ui.layout.CircularLayout
-import ro.go.stecker.optigraph.ui.navigation.GraphScreens
+import ro.go.stecker.optigraph.ui.navigation.GraphNavBar
+import ro.go.stecker.optigraph.ui.navigation.GraphTopAppBar
+import ro.go.stecker.optigraph.ui.navigation.MainScreenNavHost
 import kotlin.math.atan
 import kotlin.math.roundToInt
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    mainScreenNavController: NavHostController = rememberNavController(),
+    uiState: UiState,
+    viewModel: GraphViewModel
+) {
     Scaffold(
         topBar = { GraphTopAppBar(stringResource(R.string.main_screen)) },
+        bottomBar = { GraphNavBar(mainScreenNavController) },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         val density = LocalDensity.current
@@ -50,12 +60,19 @@ fun MainScreen() {
         val nodeRadiusPx = with(density) { nodeRadiusDp.toPx() }
 
         val offsets = remember {
-            List(20) { mutableStateOf(Offset(-nodeRadiusPx, -nodeRadiusPx)) }
+            MutableList(200) { mutableStateOf(Offset(-nodeRadiusPx, -nodeRadiusPx)) }
         }
 
-        val coords = remember {
-            List(20) { mutableStateOf(Offset(0f, 0f)) }
+        var coords = remember {
+            MutableList(200) { mutableStateOf(Offset(0f, 0f)) }
         }
+
+        LaunchedEffect(uiState.nodes, uiState.edges) {
+            Log.d("test", uiState.nodes.toString())
+            Log.d("test", uiState.edges.toString())
+            offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
+        }
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -63,6 +80,8 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Spacer(modifier = Modifier.weight(1f))
+
             Box {
                 Canvas(
                     modifier = Modifier
@@ -71,24 +90,24 @@ fun MainScreen() {
                     val rectWidth = with(density) { 32.dp.toPx() }
                     val rectHeight = with(density) { 16.dp.toPx() }
 
-                    repeat(19) {
+                    for(edge in uiState.edges) {
                         drawLine(
-                            start = coords[it].value,
-                            end = coords[it + 1].value,
+                            start = coords[edge.x - 1].value,
+                            end = coords[edge.y - 1].value,
                             color = Color.Magenta,
                             strokeWidth = 5F
                         )
 
-                        val rectCenterX = (coords[it].value.x + coords[it+1].value.x)
-                        val rectCenterY = (coords[it].value.y + coords[it+1].value.y)
+                        val rectCenterX = (coords[edge.x - 1].value.x + coords[edge.y - 1].value.x)
+                        val rectCenterY = (coords[edge.x - 1].value.y + coords[edge.y - 1].value.y)
                         val rectOffset = Offset(
-                            rectCenterX / 2 - rectWidth/2,
-                            rectCenterY / 2 - rectHeight/2
+                            rectCenterX / 2 - rectWidth / 2,
+                            rectCenterY / 2 - rectHeight / 2
                         )
 
                         rotate(
-                            degrees = atan((coords[it+1].value.y - coords[it].value.y) / (coords[it+1].value.x - coords[it].value.x)) * (180f / Math.PI.toFloat()),
-                            pivot = Offset(rectOffset.x + rectWidth/2, rectOffset.y + rectHeight/2)
+                            degrees = atan((coords[edge.y - 1].value.y - coords[edge.x - 1].value.y) / (coords[edge.y - 1].value.x - coords[edge.x - 1].value.x)) * (180f / Math.PI.toFloat()),
+                            pivot = Offset(rectOffset.x + rectWidth / 2, rectOffset.y + rectHeight / 2)
                         ) {
                             drawRoundRect(
                                 color = Color.Red,
@@ -104,13 +123,13 @@ fun MainScreen() {
                     radius = 150.dp,
                     startAngle = 270f,
                     onCoordsChange = { index, x, y ->
-                        coords[index].value = Offset(x, y)
+                        coords[index].value = Offset(x, y) + offsets[index].value - Offset(-nodeRadiusPx, -nodeRadiusPx)
                     },
                     modifier = Modifier
                         .padding(nodeRadiusDp)
 //                        .fillMaxWidth()
                 ) {
-                    repeat(20) {
+                    repeat(uiState.nodes) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -136,28 +155,14 @@ fun MainScreen() {
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            MainScreenNavHost(
+                navController = mainScreenNavController,
+                uiState = uiState,
+                viewModel = viewModel
+            )
         }
-    }
-}
-
-@Composable
-fun SideMenu() {
-    Column(
-        modifier = Modifier.background(Color.Red)
-    ) {
-        Text(
-            text="yooo",
-            color=Color.Magenta,
-            fontSize=30.sp
-        )
-    }
-}
-
-@Composable
-fun ButtonCast(navController: NavController){
-    Button(onClick={
-        navController.navigate(GraphScreens.SideMenu.name)
-    }){
-        Text("Menu")
     }
 }

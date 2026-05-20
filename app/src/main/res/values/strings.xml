@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">Opti Graph</string>
     <string name="main_screen">Main Screen</string>
+    <string name="edit">Edit</string>
+    <string name="algorithms">Algorithms</string>
+    <string name="manual">Manual</string>
+    <string name="automatic">Automatic</string>
+    <string name="number_nodes">Number of nodes</string>
+    <string name="enter_no_nodes">Enter number of nodes…</string>
+    <string name="random_tree">Random tree</string>
+    <string name="complete_graph">Complete graph</string>
+    <string name="random_graph">Random graph</string>
+    <string name="generate">Generate</string>
 </resources>

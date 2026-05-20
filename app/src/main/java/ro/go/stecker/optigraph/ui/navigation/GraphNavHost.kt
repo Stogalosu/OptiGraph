@@ -5,11 +5,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import ro.go.stecker.optigraph.ui.screens.MainScreen
-import ro.go.stecker.optigraph.ui.screens.SideMenu
+import ro.go.stecker.optigraph.ui.GraphViewModel
+import ro.go.stecker.optigraph.ui.screens.main.MainScreen
 
 enum class GraphScreens {
     MainScreen,
@@ -17,7 +20,12 @@ enum class GraphScreens {
 }
 
 @Composable
-fun GraphNavHost(navController: NavHostController) {
+fun GraphNavHost(
+    navController: NavHostController,
+    viewModel: GraphViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
     NavHost(
         navController = navController,
         startDestination = GraphScreens.MainScreen.name,
@@ -44,11 +52,10 @@ fun GraphNavHost(navController: NavHostController) {
         }
     ) {
         composable(route = GraphScreens.MainScreen.name) {
-            MainScreen()
-        }
-
-        composable(route = GraphScreens.SideMenu.name) {
-            SideMenu()
+            MainScreen(
+                uiState = uiState,
+                viewModel = viewModel
+            )
         }
     }
 }
