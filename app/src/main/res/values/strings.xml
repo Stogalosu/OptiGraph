@@ -11,4 +11,5 @@
     <string name="complete_graph">Complete graph</string>
     <string name="random_graph">Random graph</string>
     <string name="generate">Generate</string>
+    <string name="please_enter_number">Please enter a number greater than 1!</string>
 </resources>

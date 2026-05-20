@@ -1,5 +1,6 @@
 package ro.go.stecker.optigraph.ui.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,6 +17,7 @@ enum class GraphMenus {
 @Composable
 fun MainScreenNavHost(
     navController: NavHostController,
+    snackbarHostState: SnackbarHostState,
     uiState: UiState,
     viewModel: GraphViewModel
 ) {
@@ -25,6 +27,7 @@ fun MainScreenNavHost(
     ) {
         composable(route = GraphMenus.Edit.name) {
             EditMenu(
+                snackbarHostState = snackbarHostState,
                 uiState = uiState,
                 viewModel = viewModel
             )

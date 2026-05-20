@@ -1,6 +1,5 @@
 package ro.go.stecker.optigraph.ui.screens.main
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,11 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -28,9 +31,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -47,29 +52,59 @@ import kotlin.math.roundToInt
 @Composable
 fun MainScreen(
     mainScreenNavController: NavHostController = rememberNavController(),
+    snackbarHostState: SnackbarHostState,
     uiState: UiState,
     viewModel: GraphViewModel
 ) {
     Scaffold(
         topBar = { GraphTopAppBar(stringResource(R.string.main_screen)) },
         bottomBar = { GraphNavBar(mainScreenNavController) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         val density = LocalDensity.current
         val nodeRadiusDp = 16.dp
         val nodeRadiusPx = with(density) { nodeRadiusDp.toPx() }
+        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
         val offsets = remember {
             MutableList(200) { mutableStateOf(Offset(-nodeRadiusPx, -nodeRadiusPx)) }
         }
-
         var coords = remember {
             MutableList(200) { mutableStateOf(Offset(0f, 0f)) }
         }
+        var centerCoords by remember { mutableStateOf(Offset(0f, 0f)) }
+
+        fun nodeBoundsX(nodeIndex: Int, minMax: Boolean, edge: Boolean): Float {
+            return when(minMax) {
+                false ->
+                    when(edge) {
+                        false -> centerCoords.x - canvasSize.width/2 - coords[nodeIndex].value.x + offsets[nodeIndex].value.x
+                        true -> centerCoords.x - canvasSize.width/2
+                    }
+                true ->
+                    when(edge) {
+                        false -> centerCoords.x + canvasSize.width/2 - coords[nodeIndex].value.x + offsets[nodeIndex].value.x
+                        true -> centerCoords.x + canvasSize.width/2
+                    }
+            }
+        }
+        fun nodeBoundsY(nodeIndex: Int, minMax: Boolean, edge: Boolean): Float {
+            return when(minMax) {
+                false ->
+                    when(edge) {
+                        false -> centerCoords.y - canvasSize.height/2 - coords[nodeIndex].value.y + offsets[nodeIndex].value.y
+                        true -> centerCoords.y - canvasSize.height/2
+                    }
+                true ->
+                    when(edge) {
+                        false -> centerCoords.y + canvasSize.height/2 - coords[nodeIndex].value.y + offsets[nodeIndex].value.y
+                        true -> centerCoords.y + canvasSize.height/2
+                    }
+            }
+        }
 
         LaunchedEffect(uiState.nodes, uiState.edges) {
-            Log.d("test", uiState.nodes.toString())
-            Log.d("test", uiState.edges.toString())
             offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
         }
 
@@ -82,7 +117,11 @@ fun MainScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            Box {
+            Box(
+                modifier = Modifier.onSizeChanged {
+                    canvasSize = it
+                }
+            ) {
                 Canvas(
                     modifier = Modifier
                         .padding(nodeRadiusDp)
@@ -91,22 +130,42 @@ fun MainScreen(
                     val rectHeight = with(density) { 16.dp.toPx() }
 
                     for(edge in uiState.edges) {
+                        val coords1 = Offset(
+                            coords[edge.a - 1].value.x.coerceIn(
+                                nodeBoundsX(edge.a - 1, false, true),
+                                nodeBoundsX(edge.a - 1, true, true)
+                            ),
+                            coords[edge.a - 1].value.y.coerceIn(
+                                nodeBoundsY(edge.a - 1, false, true),
+                                nodeBoundsY(edge.a - 1, true, true)
+                            )
+                        )
+                        val coords2 = Offset(
+                            coords[edge.b - 1].value.x.coerceIn(
+                                nodeBoundsX(edge.b - 1, false, true),
+                                nodeBoundsX(edge.b - 1, true, true)
+                            ),
+                            coords[edge.b - 1].value.y.coerceIn(
+                                nodeBoundsY(edge.b - 1, false, true),
+                                nodeBoundsY(edge.b - 1, true, true)
+                            )
+                        )
                         drawLine(
-                            start = coords[edge.x - 1].value,
-                            end = coords[edge.y - 1].value,
+                            start = coords1,
+                            end = coords2,
                             color = Color.Magenta,
                             strokeWidth = 5F
                         )
 
-                        val rectCenterX = (coords[edge.x - 1].value.x + coords[edge.y - 1].value.x)
-                        val rectCenterY = (coords[edge.x - 1].value.y + coords[edge.y - 1].value.y)
+                        val rectCenterX = (coords1.x + coords2.x)
+                        val rectCenterY = (coords1.y + coords2.y)
                         val rectOffset = Offset(
                             rectCenterX / 2 - rectWidth / 2,
                             rectCenterY / 2 - rectHeight / 2
                         )
 
                         rotate(
-                            degrees = atan((coords[edge.y - 1].value.y - coords[edge.x - 1].value.y) / (coords[edge.y - 1].value.x - coords[edge.x - 1].value.x)) * (180f / Math.PI.toFloat()),
+                            degrees = atan((coords2.y - coords1.y) / (coords2.x - coords1.x)) * (180f / Math.PI.toFloat()),
                             pivot = Offset(rectOffset.x + rectWidth / 2, rectOffset.y + rectHeight / 2)
                         ) {
                             drawRoundRect(
@@ -125,9 +184,11 @@ fun MainScreen(
                     onCoordsChange = { index, x, y ->
                         coords[index].value = Offset(x, y) + offsets[index].value - Offset(-nodeRadiusPx, -nodeRadiusPx)
                     },
+                    onCenterCoordsChange = { x, y ->
+                        centerCoords = Offset(x, y)
+                    },
                     modifier = Modifier
                         .padding(nodeRadiusDp)
-//                        .fillMaxWidth()
                 ) {
                     repeat(uiState.nodes) {
                         Box(
@@ -135,8 +196,14 @@ fun MainScreen(
                             modifier = Modifier
                                 .offset {
                                     IntOffset(
-                                        offsets[it].value.x.roundToInt(),
-                                        offsets[it].value.y.roundToInt()
+                                        offsets[it].value.x.roundToInt().coerceIn(
+                                            nodeBoundsX(it, false, false).toInt(),
+                                            nodeBoundsX(it, true, false).toInt()
+                                        ),
+                                        offsets[it].value.y.roundToInt().coerceIn(
+                                            nodeBoundsY(it, false, false).toInt(),
+                                            nodeBoundsY(it, true, false).toInt()
+                                        ),
                                     )
                                 }
                                 .background(Color.LightGray, CircleShape)
@@ -160,6 +227,7 @@ fun MainScreen(
 
             MainScreenNavHost(
                 navController = mainScreenNavController,
+                snackbarHostState = snackbarHostState,
                 uiState = uiState,
                 viewModel = viewModel
             )

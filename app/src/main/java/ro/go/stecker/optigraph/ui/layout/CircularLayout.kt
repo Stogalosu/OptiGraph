@@ -16,6 +16,7 @@ fun CircularLayout(
     radius: Dp,
     startAngle: Float = 0f,
     onCoordsChange: (Int, Float, Float) -> Unit,
+    onCenterCoordsChange: (Float, Float) -> Unit,
     content: @Composable () -> Unit
 ) {
     val density = LocalDensity.current
@@ -36,6 +37,7 @@ fun CircularLayout(
 
         val centerX = layoutWidth / 2f
         val centerY = layoutHeight / 2f
+        onCenterCoordsChange(centerX, centerY)
 
         val angleIncrement = 360f / placeables.size
 

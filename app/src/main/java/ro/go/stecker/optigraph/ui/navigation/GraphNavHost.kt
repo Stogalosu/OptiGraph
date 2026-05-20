@@ -4,9 +4,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,6 +27,8 @@ fun GraphNavHost(
     viewModel: GraphViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     NavHost(
         navController = navController,
@@ -53,6 +57,7 @@ fun GraphNavHost(
     ) {
         composable(route = GraphScreens.MainScreen.name) {
             MainScreen(
+                snackbarHostState = snackbarHostState,
                 uiState = uiState,
                 viewModel = viewModel
             )

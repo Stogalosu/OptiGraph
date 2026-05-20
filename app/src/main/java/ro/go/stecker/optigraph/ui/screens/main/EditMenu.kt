@@ -13,17 +13,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
 import ro.go.stecker.optigraph.data.GenerationType
 import ro.go.stecker.optigraph.data.UiState
@@ -36,6 +39,7 @@ enum class EditMenuTabs {
 
 @Composable
 fun EditMenu(
+    snackbarHostState: SnackbarHostState,
     uiState: UiState,
     viewModel: GraphViewModel
 ) {
@@ -45,6 +49,7 @@ fun EditMenu(
         stringResource(R.string.manual),
         stringResource(R.string.automatic)
     )
+    val coroutineScope = rememberCoroutineScope()
 
     Card(
         modifier = Modifier
@@ -92,13 +97,17 @@ fun EditMenu(
 
                         Spacer(modifier = Modifier.width(16.dp))
 
+                        val pleaseEnterNumberText = stringResource(R.string.please_enter_number)
+
                         Button(
                             onClick = {
-                                if(numberNodes.toIntOrNull() != null && numberNodes.toIntOrNull() != 0) {
+                                if(numberNodes.toIntOrNull() != null && (numberNodes.toIntOrNull() ?: 0) > 1) {
                                     viewModel.setNumberNodes(numberNodes.toInt())
                                     viewModel.generateGraph()
-                                    /*TODO*/
-                                    //Add snackbar when numebr is not good
+                                } else {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(pleaseEnterNumberText)
+                                    }
                                 }
                             },
                             modifier = Modifier.weight(1f)
