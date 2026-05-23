@@ -5,20 +5,19 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import ro.go.stecker.optigraph.R
+import ro.go.stecker.optigraph.data.UiState
+import ro.go.stecker.optigraph.ui.GraphViewModel
 
 @Composable
 fun GraphNavBar(
-    mainScreenNavController: NavHostController
+    mainScreenNavController: NavHostController,
+    uiState: UiState,
+    viewModel: GraphViewModel
 ) {
-    var activeDestination by remember { mutableStateOf(GraphMenus.Edit) }
     val menuIcons = listOf(
         painterResource(R.drawable.rebase_edit_24px),
         painterResource(R.drawable.terminal_24px)
@@ -31,10 +30,10 @@ fun GraphNavBar(
     NavigationBar {
         GraphMenus.entries.forEachIndexed { index, destination ->
             NavigationBarItem(
-                selected = activeDestination == destination,
+                selected = uiState.destination == destination,
                 onClick = {
-                    activeDestination = destination
-                    mainScreenNavController.navigate(activeDestination.name)
+                    viewModel.selectDestination(destination)
+                    mainScreenNavController.navigate(destination.name)
                 },
                 icon = { Icon(painter = menuIcons[index], contentDescription = null) },
                 label = { Text(text = menuLabels[index]) }
