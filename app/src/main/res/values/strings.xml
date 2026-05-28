@@ -25,12 +25,15 @@
     <string name="no_nodes_to_remove">There are no nodes to remove!</string>
     <string name="remove_edge">Remove edge</string>
     <string name="nodes">Nodes</string>
+    <string name="path">Path</string>
+    <string name="cost">Cost</string>
     <string name="edges">Edges</string>
     <string name="no_nodes_for_edges">There aren\'t enough nodes!</string>
     <string name="please_select_two_nodes">Please select two distinct nodes</string>
     <string name="you_selected_node_x">You have selected node %1$s. Please click another one.</string>
     <string name="please_select_another_node">Please select another node!</string>
     <string name="this_edge_exists">This edge already exists. </string>
+    <string name="this_edge_doesnt_exist">This edge doesn\'t exit. </string>
     <string name="no_edges_to_remove">There are no edges to remove!</string>
     <string name="go_back">Go back</string>
     <string name="no">No</string>
@@ -39,4 +42,17 @@
     <string name="enter_cost_dialog">Enter the cost of the edge between nodes %1$s and %2$s</string>
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
+    <string name="dijkstra">Dijkstra</string>
+    <string name="kruskal">Kruskal</string>
+    <string name="cannot_apply_dijkstra">This graph is not connected. Dijkstra cannot be applied.</string>
+    <string name="please_select_origin_node">Please select the origin node</string>
+    <string name="you_need_graph">You need a graph!</string>
+    <string name="delete_graph">Delete graph</string>
+<!--    <string name="cost_is">Cost from %1$s to %2$s is %3$s. Path is %4$s.</string>-->
+<!--    <string name="cost_is"><b>%1$s -> %2$s</b>   Cost: %3$s   Path: %4$s.</string>-->
+    <string name="from_x_to_y">%1$s -> %2$s</string>
+    <string name="infinity">∞</string>
+    <string name="stop">Stop</string>
+    <string name="reset">Reset</string>
+    <string name="algorithm_is_running">Algorithm is running…</string>
 </resources>

@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,8 +43,9 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
-import ro.go.stecker.optigraph.data.SelectionMode
-import ro.go.stecker.optigraph.data.UiState
+import ro.go.stecker.optigraph.algs.DijkstraUiState
+import ro.go.stecker.optigraph.ui.SelectionMode
+import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.data.containsEdge
 import ro.go.stecker.optigraph.getActivity
 import ro.go.stecker.optigraph.ui.GraphViewModel
@@ -65,6 +67,7 @@ fun MainScreen(
     mainScreenNavController: NavHostController = rememberNavController(),
     snackbarHostState: SnackbarHostState,
     uiState: UiState,
+    dijkstraUiState: DijkstraUiState,
     viewModel: GraphViewModel
 ) {
     Scaffold(
@@ -92,6 +95,9 @@ fun MainScreen(
         val nodeRadiusDp = 16.dp
         val nodeRadiusPx = with(density) { nodeRadiusDp.toPx() }
         var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+        val edgeColor =
+            if(isSystemInDarkTheme()) Color.White
+            else Color.Black
 
         val offsets = remember {
             MutableList(200) { mutableStateOf(Offset(-nodeRadiusPx, -nodeRadiusPx)) }
@@ -106,6 +112,7 @@ fun MainScreen(
 
         val differentNodeText = stringResource(R.string.please_select_another_node)
         val thisEdgeExistsText = stringResource(R.string.this_edge_exists)
+        val thisEdgeDoesntExistText = stringResource(R.string.this_edge_doesnt_exist)
 
         fun nodeBoundsX(nodeIndex: Int, minMax: Boolean, edge: Boolean): Float {
             return when(minMax) {
@@ -143,11 +150,13 @@ fun MainScreen(
 
         LaunchedEffect(uiState.nodes, uiState.edges) {
             offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
+            viewModel.resetDijkstra()
         }
 
-        LaunchedEffect(uiState.destination, uiState.selectedEditTab) {
+        LaunchedEffect(uiState.destination, uiState.selectedEditTab, uiState.selectedAlgorithmTab) {
             delay(100.milliseconds)
             /*TODO*/
+            viewModel.setSelectedNode(0)
             viewModel.toggleSelectionMode(uiState.selectionMode)
         }
 
@@ -170,7 +179,7 @@ fun MainScreen(
                     enterCostDialog = 0
                 },
                 onConfirmClick = { cost ->
-                    viewModel.addEdge(enterCostDialog, cost)
+                    viewModel.editEdge(enterCostDialog, cost)
                     enterCostDialog = 0
                 }
             )
@@ -220,7 +229,10 @@ fun MainScreen(
                             drawLine(
                                 start = coords1,
                                 end = coords2,
-                                color = Color.Magenta,
+                                color =
+                                    if(uiState.isDijkstraTab()) dijkstraUiState.getEdgeColor(edge) ?: edgeColor
+                                    else edgeColor
+                                ,
                                 strokeWidth = 5F
                             )
 
@@ -262,6 +274,11 @@ fun MainScreen(
                             Node(
                                 radius = nodeRadiusDp,
                                 text = (it + 1).toString(),
+                                borderColor =
+                                    if(uiState.isDijkstraTab() && uiState.hasDijkstraRun)
+                                        dijkstraUiState.getNodeBorderColor(it + 1, uiState.dijkstraRoot)
+                                    else
+                                        uiState.nodeBorderColor(it + 1),
                                 modifier = Modifier
                                     .offset {
                                         IntOffset(
@@ -283,23 +300,28 @@ fun MainScreen(
                                         }
                                     }
                                     .clickable(
-                                        enabled = uiState.selectionMode == SelectionMode.RemoveNode || uiState.selectionMode == SelectionMode.AddEdge,
+                                        enabled = uiState.areNodesClickable(),
                                         onClick = {
                                             if(uiState.selectionMode == SelectionMode.RemoveNode)
                                                 removeNodeDialog = it + 1
                                             else {
                                                 if(uiState.selectedNode == 0)
-                                                    viewModel.addEdge(it + 1)
+                                                    viewModel.setSelectedNode(it + 1)
                                                 else {
-                                                    if(uiState.selectedNode == it + 1)
-                                                        coroutineScope.launch {
+                                                    coroutineScope.launch {
+                                                        if (uiState.selectedNode == it + 1)
                                                             snackbarHostState.showSnackbar(differentNodeText)
+                                                        if(uiState.selectionMode == SelectionMode.AddEdge) {
+                                                            if(uiState.edges.containsEdge(uiState.selectedNode, it + 1))
+                                                                snackbarHostState.showSnackbar(thisEdgeExistsText + differentNodeText)
+                                                            else enterCostDialog = it + 1
                                                         }
-                                                    else if(uiState.edges.containsEdge(uiState.selectedNode, it +1))
-                                                        coroutineScope.launch {
-                                                            snackbarHostState.showSnackbar(thisEdgeExistsText + differentNodeText)
+                                                        if(uiState.selectionMode == SelectionMode.RemoveEdge) {
+                                                            if(!uiState.edges.containsEdge(uiState.selectedNode, it + 1))
+                                                                snackbarHostState.showSnackbar(message = thisEdgeDoesntExistText + differentNodeText)
+                                                            else viewModel.editEdge(it + 1)
                                                         }
-                                                    else enterCostDialog = it + 1
+                                                    }
                                                 }
                                             }
                                         }
@@ -317,6 +339,7 @@ fun MainScreen(
             MainScreenNavHost(
                 navController = mainScreenNavController,
                 snackbarHostState = snackbarHostState,
+                dijkstraUiState = dijkstraUiState,
                 uiState = uiState,
                 viewModel = viewModel
             )

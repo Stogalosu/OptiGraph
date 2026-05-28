@@ -36,9 +36,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
-import ro.go.stecker.optigraph.data.GenerationType
-import ro.go.stecker.optigraph.data.SelectionMode
-import ro.go.stecker.optigraph.data.UiState
+import ro.go.stecker.optigraph.ui.GenerationType
+import ro.go.stecker.optigraph.ui.SelectionMode
+import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.ui.GraphViewModel
 
 enum class EditMenuTabs {
@@ -133,7 +133,7 @@ fun ManualEditMenu(
                     fontWeight = FontWeight.Bold
                 )
 
-            SelectionMode.AddEdge ->
+            else ->
                 if(uiState.selectedNode == 0)
                     Text(
                         text = stringResource(R.string.please_select_two_nodes),
@@ -145,8 +145,6 @@ fun ManualEditMenu(
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
-
-            else -> {}
         }
 
         Row(

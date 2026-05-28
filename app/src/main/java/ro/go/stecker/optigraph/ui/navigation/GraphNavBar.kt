@@ -9,7 +9,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import ro.go.stecker.optigraph.R
-import ro.go.stecker.optigraph.data.UiState
+import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.ui.GraphViewModel
 
 @Composable
