@@ -110,6 +110,11 @@ class GraphViewModel(): ViewModel() {
         }
     }
 
+    fun deleteGraph() {
+        if(_uiState.value.hasDijkstraRun) resetDijkstra()
+        _uiState.update { it.copy(nodes = 0, edges = mutableListOf()) }
+    }
+
     fun isConnectedGraph(): Boolean {
         return true
     }

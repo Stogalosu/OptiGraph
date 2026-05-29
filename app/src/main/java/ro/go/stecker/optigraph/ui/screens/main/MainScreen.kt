@@ -50,6 +50,7 @@ import ro.go.stecker.optigraph.data.containsEdge
 import ro.go.stecker.optigraph.getActivity
 import ro.go.stecker.optigraph.ui.GraphViewModel
 import ro.go.stecker.optigraph.ui.Node
+import ro.go.stecker.optigraph.ui.dialogs.DeleteGraphDialog
 import ro.go.stecker.optigraph.ui.dialogs.EnterCostDialog
 import ro.go.stecker.optigraph.ui.dialogs.RemoveNodeDialog
 import ro.go.stecker.optigraph.ui.layout.CircularLayout
@@ -70,12 +71,17 @@ fun MainScreen(
     dijkstraUiState: DijkstraUiState,
     viewModel: GraphViewModel
 ) {
+    var removeNodeDialog by remember { mutableStateOf(0) }
+    var enterCostDialog by remember { mutableStateOf(0) }
+    var deleteGraphDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             GraphTopAppBar(
                 title = stringResource(R.string.main_screen),
                 canGoBack = uiState.selectionMode != SelectionMode.None,
-                onBackClick = { viewModel.toggleSelectionMode(uiState.selectionMode) }
+                onBackClick = { viewModel.toggleSelectionMode(uiState.selectionMode) },
+                onDeleteGraphClick = { deleteGraphDialog = true }
             )
          },
         bottomBar = {
@@ -106,9 +112,6 @@ fun MainScreen(
             MutableList(200) { mutableStateOf(Offset(0f, 0f)) }
         }
         var centerCoords by remember { mutableStateOf(Offset(0f, 0f)) }
-
-        var removeNodeDialog by remember { mutableStateOf(0) }
-        var enterCostDialog by remember { mutableStateOf(0) }
 
         val differentNodeText = stringResource(R.string.please_select_another_node)
         val thisEdgeExistsText = stringResource(R.string.this_edge_exists)
@@ -181,6 +184,15 @@ fun MainScreen(
                 onConfirmClick = { cost ->
                     viewModel.editEdge(enterCostDialog, cost)
                     enterCostDialog = 0
+                }
+            )
+
+        if(deleteGraphDialog)
+            DeleteGraphDialog(
+                onBackClick = { deleteGraphDialog = false },
+                onConfirmClick = {
+                    viewModel.deleteGraph()
+                    deleteGraphDialog = false
                 }
             )
 

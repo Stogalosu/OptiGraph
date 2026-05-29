@@ -55,4 +55,5 @@
     <string name="stop">Stop</string>
     <string name="reset">Reset</string>
     <string name="algorithm_is_running">Algorithm is running…</string>
+    <string name="delete_graph_dialog">Are you sure you want to delete the graph? This action cannot be undone.</string>
 </resources>
