@@ -10,11 +10,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.algs.DijkstraUiState
+import ro.go.stecker.optigraph.algs.KruskalUiState
 import ro.go.stecker.optigraph.algs.completeGraphGenerator
 import ro.go.stecker.optigraph.algs.dijkstra
+import ro.go.stecker.optigraph.algs.kruskal
 import ro.go.stecker.optigraph.algs.randomGraphGenerator
 import ro.go.stecker.optigraph.algs.randomTreeGenerator
 import ro.go.stecker.optigraph.data.Edge
+import ro.go.stecker.optigraph.data.decrementFirstNode
+import ro.go.stecker.optigraph.data.decrementSecondNode
 import ro.go.stecker.optigraph.ui.navigation.GraphMenus
 import ro.go.stecker.optigraph.ui.screens.main.AlgorithmMenuTabs
 import ro.go.stecker.optigraph.ui.screens.main.EditMenuTabs
@@ -25,6 +29,9 @@ class GraphViewModel(): ViewModel() {
     private val _dijkstraUiState = MutableStateFlow(DijkstraUiState())
     val dijkstraUiState = _dijkstraUiState.asStateFlow()
     var dijkstraJob: Job = Job()
+    private val _kruskalUiState = MutableStateFlow(KruskalUiState())
+    val kruskalUiState = _kruskalUiState.asStateFlow()
+    var kruskalJob: Job = Job()
 
     fun selectGenerationType(type: GenerationType) {
         _uiState.update { it.copy(selectedGeneration = type) }
@@ -61,10 +68,8 @@ class GraphViewModel(): ViewModel() {
 
     fun setSelectedNode(node: Int) {
         _uiState.update { it.copy(selectedNode = node) }
-        if(node != 0) {
-            if(uiState.value.isDijkstraTab()) startDijkstra(node)
-            if(uiState.value.isKruskalTab()) startKruskal(node)
-        }
+        if(node != 0 && uiState.value.isDijkstraTab())
+            startDijkstra(node)
     }
 
     fun editEdge(node: Int, cost: Int = 0) {
@@ -147,5 +152,30 @@ class GraphViewModel(): ViewModel() {
         _dijkstraUiState.value = DijkstraUiState()
     }
 
-    fun startKruskal(root: Int) = _uiState.update { it.copy(hasKruskalRun = true, kruskalRoot = root) }
+    fun startKruskal() {
+        _uiState.update { it.copy(hasKruskalRun = true) }
+        kruskalJob = viewModelScope.launch {
+            kruskal(
+                _uiState.value.nodes,
+                _uiState.value.edges
+            ).stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(),
+                initialValue = KruskalUiState()
+            ).collect { newState ->
+                _kruskalUiState.value = newState
+            }
+        }
+    }
+
+    fun stopKruskal() {
+        kruskalJob.cancel()
+        _kruskalUiState.update { it.copy().also { state -> state.finished = true } }
+    }
+
+    fun resetKruskal() {
+        _uiState.update { it.copy(hasKruskalRun = false) }
+        stopKruskal()
+        _kruskalUiState.value = KruskalUiState()
+    }
 }

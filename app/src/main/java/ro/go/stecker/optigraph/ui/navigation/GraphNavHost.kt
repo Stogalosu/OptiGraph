@@ -28,6 +28,7 @@ fun GraphNavHost(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val dijkstraUiState by viewModel.dijkstraUiState.collectAsState()
+    val kruskalUiState by viewModel.kruskalUiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -61,6 +62,7 @@ fun GraphNavHost(
                 snackbarHostState = snackbarHostState,
                 uiState = uiState,
                 dijkstraUiState = dijkstraUiState,
+                kruskalUiState = kruskalUiState,
                 viewModel = viewModel
             )
         }

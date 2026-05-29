@@ -1,17 +1,22 @@
 package ro.go.stecker.optigraph.data
 
-class Edge(var a:Int, var b:Int, var c:Int) {
-    fun decrementFirstNode() {
-        a--
-    }
-    fun decrementSecondNode() {
-        b--
-    }
+data class Edge(
+    var a: Int = 0,
+    var b: Int = 0,
+    var c: Int = 0
+)
+
+fun Edge.decrementFirstNode() {
+    this.a--
 }
 
-fun MutableList<Edge>.containsEdge(node1: Int, node2: Int): Boolean {
+fun Edge.decrementSecondNode() {
+    this.b--
+}
+
+fun MutableList<Edge>.containsEdge(a: Int, b: Int): Boolean {
     for(edge in this) {
-        if((edge.a == node1 && edge.b == node2) || (edge.a == node2 && edge.b == node1))
+        if((edge.a == a && edge.b == b) || (edge.a == b && edge.b == a))
             return true
     }
     return false

@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ro.go.stecker.optigraph.R
 import ro.go.stecker.optigraph.algs.DijkstraUiState
+import ro.go.stecker.optigraph.algs.KruskalUiState
 import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.ui.GraphViewModel
 
@@ -33,8 +34,8 @@ enum class AlgorithmMenuTabs {
 
 @Composable
 fun AlgorithmMenu(
-    snackbarHostState: SnackbarHostState,
     dijkstraUiState: DijkstraUiState,
+    kruskalUiState: KruskalUiState,
     uiState: UiState,
     viewModel: GraphViewModel
 ) {
@@ -48,28 +49,44 @@ fun AlgorithmMenu(
             .padding(16.dp)
     ) {
         Column() {
-            when(uiState.selectedAlgorithmTab) {
-                AlgorithmMenuTabs.Dijkstra -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .fillMaxWidth()
-                    ) {
-                        if (uiState.nodes != 0) {
-                            if (!uiState.hasDijkstraRun) {
-                                if (viewModel.isConnectedGraph()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .padding(vertical = 12.dp, horizontal = 12.dp)
+                    .fillMaxWidth()
+            ) {
+                if (uiState.nodes != 0) {
+                    if ((uiState.isDijkstraTab() && !uiState.hasDijkstraRun) || (uiState.isKruskalTab() && !uiState.hasKruskalRun)) {
+                        if (viewModel.isConnectedGraph()) {
+                            when(uiState.selectedAlgorithmTab) {
+                                AlgorithmMenuTabs.Dijkstra ->
                                     Text(
                                         text = stringResource(R.string.please_select_origin_node),
                                         fontWeight = FontWeight.Bold
                                     )
-                                } else
-                                    Text(
-                                        text = stringResource(R.string.cannot_apply_dijkstra),
-                                        fontWeight = FontWeight.Bold
-                                    )
-                            } else {
+
+                                AlgorithmMenuTabs.Kruskal ->
+                                    Button(
+                                        onClick = { viewModel.startKruskal() }
+                                    ) {
+                                        Text(text = stringResource(R.string.run_kruskal))
+                                    }
+                            }
+                        } else {
+                            val algorithm =
+                                when(uiState.selectedAlgorithmTab) {
+                                    AlgorithmMenuTabs.Dijkstra -> stringResource(R.string.dijkstra)
+                                    AlgorithmMenuTabs.Kruskal -> stringResource(R.string.kruskal)
+                                }
+                            Text(
+                                text = stringResource(R.string.cannot_apply_algorithm, algorithm),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
+                        when(uiState.selectedAlgorithmTab) {
+                            AlgorithmMenuTabs.Dijkstra -> {
                                 if (uiState.nodes <= 6) {
                                     Row(
                                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -125,7 +142,7 @@ fun AlgorithmMenu(
                                         }
                                     }
                                 } else {
-
+                                    /*TODO*/
                                 }
                                 if (!dijkstraUiState.finished) {
                                     Text(
@@ -147,14 +164,41 @@ fun AlgorithmMenu(
                                     }
                                 }
                             }
-                        } else
-                            Text(stringResource(R.string.you_need_graph))
+
+                            AlgorithmMenuTabs.Kruskal -> {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Column {
+                                        Text(text = stringResource(R.string.cost_is, kruskalUiState.cost.toString()))
+                                        Text(text = stringResource(R.string.parents_are, kruskalUiState.parents.toString()))
+                                    }
+                                    if (!kruskalUiState.finished) {
+                                        Text(
+                                            text = stringResource(R.string.algorithm_is_running),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Button(
+                                            onClick = { viewModel.stopKruskal() },
+                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                        ) {
+                                            Text(text = stringResource(R.string.stop))
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = { viewModel.resetKruskal() },
+                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                        ) {
+                                            Text(text = stringResource(R.string.reset))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-
-                AlgorithmMenuTabs.Kruskal -> {
-
-                }
+                } else
+                    Text(stringResource(R.string.you_need_graph))
             }
 
             PrimaryTabRow(
@@ -173,6 +217,8 @@ fun AlgorithmMenu(
         }
     }
 }
+
+
 
 fun getPathToNode(
     node: Int,

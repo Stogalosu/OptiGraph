@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
 import ro.go.stecker.optigraph.algs.DijkstraUiState
+import ro.go.stecker.optigraph.algs.KruskalUiState
 import ro.go.stecker.optigraph.ui.SelectionMode
 import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.data.containsEdge
@@ -69,6 +70,7 @@ fun MainScreen(
     snackbarHostState: SnackbarHostState,
     uiState: UiState,
     dijkstraUiState: DijkstraUiState,
+    kruskalUiState: KruskalUiState,
     viewModel: GraphViewModel
 ) {
     var removeNodeDialog by remember { mutableStateOf(0) }
@@ -154,6 +156,7 @@ fun MainScreen(
         LaunchedEffect(uiState.nodes, uiState.edges) {
             offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
             viewModel.resetDijkstra()
+            viewModel.resetKruskal()
         }
 
         LaunchedEffect(uiState.destination, uiState.selectedEditTab, uiState.selectedAlgorithmTab) {
@@ -243,6 +246,7 @@ fun MainScreen(
                                 end = coords2,
                                 color =
                                     if(uiState.isDijkstraTab()) dijkstraUiState.getEdgeColor(edge) ?: edgeColor
+                                    else if(uiState.isKruskalTab()) kruskalUiState.getEdgeColor(edge) ?: edgeColor
                                     else edgeColor
                                 ,
                                 strokeWidth = 5F
@@ -288,7 +292,9 @@ fun MainScreen(
                                 text = (it + 1).toString(),
                                 borderColor =
                                     if(uiState.isDijkstraTab() && uiState.hasDijkstraRun)
-                                        dijkstraUiState.getNodeBorderColor(it + 1, uiState.dijkstraRoot)
+                                        dijkstraUiState.getNodeBorderColor(it + 1, uiState.dijkstraRoot) ?: Color.Black
+                                    else if(uiState.isKruskalTab())
+                                        kruskalUiState.getNodeBorderColor(it + 1) ?: Color.Black
                                     else
                                         uiState.nodeBorderColor(it + 1),
                                 modifier = Modifier
@@ -352,6 +358,7 @@ fun MainScreen(
                 navController = mainScreenNavController,
                 snackbarHostState = snackbarHostState,
                 dijkstraUiState = dijkstraUiState,
+                kruskalUiState = kruskalUiState,
                 uiState = uiState,
                 viewModel = viewModel
             )

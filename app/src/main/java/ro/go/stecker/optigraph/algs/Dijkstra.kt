@@ -19,8 +19,8 @@ class DijkstraUiState(
     var costs: List<Int> = listOf(),
     var currentNode: Int = 0,
     var finished: Boolean = false,
-    var greenEdges: MutableList<Edge> = mutableListOf(),
-    var redEdges: MutableList<Edge> = mutableListOf(),
+    var greenEdge: Edge = Edge(),
+    var redEdge: Edge = Edge(),
     var blueEdges: MutableList<Edge> = mutableListOf()
 ) {
     fun copy() = DijkstraUiState(
@@ -28,8 +28,8 @@ class DijkstraUiState(
         costs = costs.toMutableList(),
         currentNode = currentNode,
         finished = finished,
-        greenEdges = greenEdges.toMutableList(),
-        redEdges = redEdges.toMutableList(),
+        greenEdge = greenEdge,
+        redEdge = redEdge,
         blueEdges = blueEdges.toMutableList()
     )
 
@@ -37,11 +37,9 @@ class DijkstraUiState(
         parents = parentList
         costs = costList
         currentNode = node
-        for(edge in greenEdges.toList()) {
-            blueEdges.add(edge)
-            greenEdges.remove(edge)
-        }
-        redEdges.clear()
+        blueEdges.add(greenEdge)
+        greenEdge = Edge()
+        redEdge = Edge()
     }
 
     fun finish() {
@@ -49,16 +47,16 @@ class DijkstraUiState(
     }
 
     fun getEdgeColor(edge: Edge): Color? {
-        if(greenEdges.containsEdge(edge.a, edge.b)) return Color.Green
-        if(redEdges.containsEdge(edge.a, edge.b)) return Color.Red
+        if(greenEdge == edge) return Color.Green
+        if(redEdge == edge) return Color.Red
         if(blueEdges.containsEdge(edge.a, edge.b)) return Color.Blue
         return null
     }
 
-    fun getNodeBorderColor(node: Int, root: Int): Color {
+    fun getNodeBorderColor(node: Int, root: Int): Color? {
         if(node == currentNode) return Color.Blue
         if(node == root) return Color.Green
-        return Color.Black
+        return null
     }
 }
 
@@ -89,12 +87,12 @@ fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
                 d[next]=nextcost
                 pq.add(Muchie(next,nextcost))
                 /// gasim muchia (nod next)care e mai buna
-                snap.greenEdges.add(Edge(nod, next, f.cost))
+                snap.greenEdge =Edge(nod, next, f.cost)
                 emit(snap.copy())
                 delay(1.seconds)
                 t[next]=nod
             } else {
-                snap.redEdges.add(Edge(nod, next, f.cost))
+                snap.redEdge = Edge(nod, next, f.cost)
                 emit(snap.copy())
                 delay(1.seconds)
             }
@@ -103,6 +101,4 @@ fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
     snap.nextIteration(0, t.toMutableList(), d.toMutableList())
     snap.finish()
     emit(snap.copy())
-
-
 }

@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import ro.go.stecker.optigraph.algs.DijkstraUiState
+import ro.go.stecker.optigraph.algs.KruskalUiState
 import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.ui.GraphViewModel
 import ro.go.stecker.optigraph.ui.screens.main.AlgorithmMenu
@@ -21,6 +22,7 @@ fun MainScreenNavHost(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     dijkstraUiState: DijkstraUiState,
+    kruskalUiState: KruskalUiState,
     uiState: UiState,
     viewModel: GraphViewModel
 ) {
@@ -38,9 +40,9 @@ fun MainScreenNavHost(
 
         composable(route = GraphMenus.Algorithms.name) {
             AlgorithmMenu(
-                snackbarHostState = snackbarHostState,
                 uiState = uiState,
                 dijkstraUiState = dijkstraUiState,
+                kruskalUiState = kruskalUiState,
                 viewModel = viewModel
             )
         }

@@ -26,7 +26,6 @@ class UiState(
     val hasDijkstraRun: Boolean = false,
     val dijkstraRoot: Int = 0,
     val hasKruskalRun: Boolean = false,
-    val kruskalRoot: Int = 0,
     val nodes: Int = 0,
     val selectedGeneration: GenerationType = GenerationType.RandomGraph,
     val edges: MutableList<Edge> = mutableListOf(),
@@ -40,7 +39,6 @@ class UiState(
         hasDijkstraRun: Boolean = this.hasDijkstraRun,
         dijkstraRoot: Int = this.dijkstraRoot,
         hasKruskalRun: Boolean = this.hasKruskalRun,
-        kruskalRoot: Int = this.kruskalRoot,
         nodes: Int = this.nodes,
         selectedGeneration: GenerationType = this.selectedGeneration,
         edges: MutableList<Edge> = this.edges,
@@ -54,7 +52,6 @@ class UiState(
             hasDijkstraRun,
             dijkstraRoot,
             hasKruskalRun,
-            kruskalRoot,
             nodes,
             selectedGeneration,
             edges,
@@ -73,8 +70,7 @@ class UiState(
 
     fun areNodesClickable(): Boolean {
         return selectionMode != SelectionMode.None ||
-                (isDijkstraTab() && !hasDijkstraRun) ||
-                (isKruskalTab() && !hasKruskalRun)
+                (isDijkstraTab() && !hasDijkstraRun)
     }
 
     fun nodeBorderColor(node: Int): Color {
@@ -82,7 +78,6 @@ class UiState(
             if(selectionMode == SelectionMode.AddEdge) return Color.Green
             if(selectionMode == SelectionMode.RemoveEdge) return Color.Red
         }
-        if(kruskalRoot == node && isKruskalTab()) return Color.Green
         return Color.Black
     }
 }

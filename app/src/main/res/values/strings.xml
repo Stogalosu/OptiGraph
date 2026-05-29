@@ -44,7 +44,7 @@
     <string name="confirm">Confirm</string>
     <string name="dijkstra">Dijkstra</string>
     <string name="kruskal">Kruskal</string>
-    <string name="cannot_apply_dijkstra">This graph is not connected. Dijkstra cannot be applied.</string>
+    <string name="cannot_apply_algorithm">This graph is not connected. %1$s cannot be applied.</string>
     <string name="please_select_origin_node">Please select the origin node</string>
     <string name="you_need_graph">You need a graph!</string>
     <string name="delete_graph">Delete graph</string>
@@ -56,4 +56,7 @@
     <string name="reset">Reset</string>
     <string name="algorithm_is_running">Algorithm is running…</string>
     <string name="delete_graph_dialog">Are you sure you want to delete the graph? This action cannot be undone.</string>
+    <string name="run_kruskal">Run Kruskal</string>
+    <string name="cost_is">Cost: %1$s</string>
+    <string name="parents_are">Parents: %1$s</string>
 </resources>
