@@ -48,8 +48,6 @@
     <string name="please_select_origin_node">Please select the origin node</string>
     <string name="you_need_graph">You need a graph!</string>
     <string name="delete_graph">Delete graph</string>
-<!--    <string name="cost_is">Cost from %1$s to %2$s is %3$s. Path is %4$s.</string>-->
-<!--    <string name="cost_is"><b>%1$s -> %2$s</b>   Cost: %3$s   Path: %4$s.</string>-->
     <string name="from_x_to_y">%1$s -> %2$s</string>
     <string name="infinity">∞</string>
     <string name="stop">Stop</string>
@@ -59,4 +57,8 @@
     <string name="run_kruskal">Run Kruskal</string>
     <string name="cost_is">Cost: %1$s</string>
     <string name="parents_are">Parents: %1$s</string>
+    <string name="next_node">Next node</string>
+    <string name="previous_node">Previous node</string>
+    <string name="enter_node_dijkstra">From node %1$s to node: </string>
+    <string name="path_is">Path: %1$s</string>
 </resources>

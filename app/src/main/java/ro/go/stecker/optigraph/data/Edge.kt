@@ -6,6 +6,10 @@ data class Edge(
     var c: Int = 0
 )
 
+fun Edge.connectsNodes(a: Int, b: Int): Boolean {
+    return (this.a == a && this.b == b) || (this.a == b && this.b == a)
+}
+
 fun Edge.decrementFirstNode() {
     this.a--
 }

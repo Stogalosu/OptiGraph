@@ -155,11 +155,15 @@ fun ManualEditMenu(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
-                        onClick = { numberNodes = (numberNodes.toInt() + 1).toString() }
+                        onClick = {
+                            if(numberNodes.toIntOrNull() != null)
+                                if (numberNodes.toInt() > 1)
+                                    numberNodes = (numberNodes.toInt() - 1).toString()
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.add_24px),
-                            contentDescription = stringResource(R.string.add_more_nodes)
+                            painter = painterResource(R.drawable.remove_24px),
+                            contentDescription = stringResource(R.string.add_less_nodes)
                         )
                     }
                     OutlinedTextField(
@@ -171,13 +175,13 @@ fun ManualEditMenu(
                     )
                     IconButton(
                         onClick = {
-                            if (numberNodes.toInt() > 1)
-                                numberNodes = (numberNodes.toInt() - 1).toString()
+                            if(numberNodes.toIntOrNull() != null)
+                                numberNodes = (numberNodes.toInt() + 1).toString()
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.remove_24px),
-                            contentDescription = stringResource(R.string.add_less_nodes)
+                            painter = painterResource(R.drawable.add_24px),
+                            contentDescription = stringResource(R.string.add_more_nodes)
                         )
                     }
                 }
@@ -185,6 +189,7 @@ fun ManualEditMenu(
                 Button(
                     onClick = {
                         viewModel.setNumberNodes(uiState.nodes + numberNodes.toInt())
+                        numberNodes = "1"
                     }
                 ) {
                     Icon(painterResource(R.drawable.add_24px), contentDescription = null)

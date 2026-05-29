@@ -1,5 +1,6 @@
 package ro.go.stecker.optigraph.ui.screens.main
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,17 +8,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,6 +43,7 @@ enum class AlgorithmMenuTabs {
     Kruskal
 }
 
+@SuppressLint("LocalContextResourcesRead")
 @Composable
 fun AlgorithmMenu(
     dijkstraUiState: DijkstraUiState,
@@ -43,6 +55,14 @@ fun AlgorithmMenu(
         stringResource(R.string.dijkstra),
         stringResource(R.string.kruskal)
     )
+    val infinitySymbol = stringResource(R.string.infinity)
+    val context = LocalContext.current
+
+    var nodeNumber by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.dijkstraRoot) {
+        nodeNumber = uiState.dijkstraRoot.toString()
+    }
 
     Card(
         modifier = Modifier
@@ -92,58 +112,36 @@ fun AlgorithmMenu(
                                         horizontalArrangement = Arrangement.SpaceEvenly,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                text = stringResource(R.string.nodes),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            repeat(uiState.nodes) {
-                                                if (it + 1 != uiState.dijkstraRoot) {
-                                                    Text(
-                                                        text = stringResource(
-                                                            R.string.from_x_to_y,
-                                                            uiState.dijkstraRoot,
-                                                            (it + 1).toString()
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                text = stringResource(R.string.cost),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            repeat(uiState.nodes) {
-                                                if (it + 1 != uiState.dijkstraRoot) {
-                                                    if (dijkstraUiState.costs.isNotEmpty()) {
-                                                        val text =
-                                                            if (dijkstraUiState.costs[it + 1] <= 1000) dijkstraUiState.costs[it + 1].toString()
-                                                            else stringResource(R.string.infinity)
-                                                        Text(text = text)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                text = stringResource(R.string.path),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Spacer(modifier = Modifier.height(16.dp))
-                                            repeat(uiState.nodes) {
-                                                if (it + 1 != uiState.dijkstraRoot) {
-                                                    if (dijkstraUiState.parents.isNotEmpty())
-                                                        Text(text = getPathToNode(it + 1, uiState.dijkstraRoot, dijkstraUiState.parents))
-                                                }
-                                            }
-                                        }
+                                        DijkstraInfoColumn(
+                                            title = stringResource(R.string.nodes),
+                                            rowsText = {
+                                                context.resources.getString(
+                                                    R.string.from_x_to_y,
+                                                    uiState.dijkstraRoot.toString(),
+                                                    it.toString()
+                                                )
+                                            },
+                                            uiState = uiState,
+                                            dijkstraUiState = dijkstraUiState
+                                        )
+                                        DijkstraInfoColumn(
+                                            title = stringResource(R.string.cost),
+                                            rowsText = {
+                                                if (dijkstraUiState.costs[it] <= 1000) dijkstraUiState.costs[it].toString()
+                                                else infinitySymbol
+                                            },
+                                            uiState = uiState,
+                                            dijkstraUiState = dijkstraUiState
+                                        )
+                                        DijkstraInfoColumn(
+                                            title = stringResource(R.string.path),
+                                            rowsText = { getPathToNode(it, uiState.dijkstraRoot, dijkstraUiState.parents) },
+                                            uiState = uiState,
+                                            dijkstraUiState = dijkstraUiState
+                                        )
                                     }
-                                } else {
-                                    /*TODO*/
                                 }
+
                                 if (!dijkstraUiState.finished) {
                                     Text(
                                         text = stringResource(R.string.algorithm_is_running),
@@ -156,6 +154,76 @@ fun AlgorithmMenu(
                                         Text(text = stringResource(R.string.stop))
                                     }
                                 } else {
+                                    if(uiState.nodes > 6) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(text = stringResource(R.string.enter_node_dijkstra, uiState.dijkstraRoot))
+                                            IconButton(
+                                                onClick = {
+                                                    if(nodeNumber.toIntOrNull() != null)
+                                                        if (nodeNumber.toInt() > 1)
+                                                            nodeNumber = (nodeNumber.toInt() - 1).toString()
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.remove_24px),
+                                                    contentDescription = stringResource(R.string.previous_node)
+                                                )
+                                            }
+                                            OutlinedTextField(
+                                                value = nodeNumber,
+                                                onValueChange = { nodeNumber = it },
+                                                isError = nodeNumber.toIntOrNull() == null || (nodeNumber.toIntOrNull() ?: 0) > uiState.nodes,
+                                                singleLine = true,
+                                                modifier = Modifier.width(52.dp)
+                                            )
+                                            IconButton(
+                                                onClick = {
+                                                    if(nodeNumber.toIntOrNull() != null)
+                                                        if(nodeNumber.toInt() < uiState.nodes)
+                                                            nodeNumber = (nodeNumber.toInt() + 1).toString()
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.add_24px),
+                                                    contentDescription = stringResource(R.string.next_node)
+                                                )
+                                            }
+                                        }
+                                        if(nodeNumber.toIntOrNull() != null && (nodeNumber.toIntOrNull() ?: 0) <= uiState.nodes)
+                                            Row(
+                                                horizontalArrangement = Arrangement.Center,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            R.string.cost_is,
+                                                            if (dijkstraUiState.costs[nodeNumber.toInt()] <= 1000)
+                                                                dijkstraUiState.costs[nodeNumber.toInt()].toString()
+                                                            else infinitySymbol
+                                                        ),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                                Spacer(modifier = Modifier.width(16.dp))
+                                                Text(
+                                                    text =
+                                                        stringResource(
+                                                            R.string.path_is,
+                                                            getPathToNode(
+                                                                node = nodeNumber.toInt(),
+                                                                root = uiState.dijkstraRoot,
+                                                                parents = dijkstraUiState.parents
+                                                            )
+                                                        ),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        else
+                                            Spacer(modifier = Modifier.height(32.dp))
+                                    }
+
                                     Button(
                                         onClick = { viewModel.resetDijkstra() },
                                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
@@ -218,7 +286,27 @@ fun AlgorithmMenu(
     }
 }
 
-
+@Composable
+fun DijkstraInfoColumn(
+    title: String,
+    rowsText: (Int) -> String,
+    uiState: UiState,
+    dijkstraUiState: DijkstraUiState
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = title,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        repeat(uiState.nodes) {
+            if (it + 1 != uiState.dijkstraRoot) {
+                if (dijkstraUiState.parents.isNotEmpty())
+                    Text(text = rowsText(it + 1))
+            }
+        }
+    }
+}
 
 fun getPathToNode(
     node: Int,

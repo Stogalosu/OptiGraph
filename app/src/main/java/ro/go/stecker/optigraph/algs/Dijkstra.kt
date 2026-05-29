@@ -5,6 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ro.go.stecker.optigraph.data.Edge
+import ro.go.stecker.optigraph.data.connectsNodes
 import ro.go.stecker.optigraph.data.containsEdge
 import java.util.PriorityQueue
 import kotlin.time.Duration.Companion.seconds
@@ -47,8 +48,8 @@ class DijkstraUiState(
     }
 
     fun getEdgeColor(edge: Edge): Color? {
-        if(greenEdge == edge) return Color.Green
-        if(redEdge == edge) return Color.Red
+        if(greenEdge.connectsNodes(edge.a, edge.b)) return Color.Green
+        if(redEdge.connectsNodes(edge.a, edge.b)) return Color.Red
         if(blueEdges.containsEdge(edge.a, edge.b)) return Color.Blue
         return null
     }
@@ -87,7 +88,7 @@ fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
                 d[next]=nextcost
                 pq.add(Muchie(next,nextcost))
                 /// gasim muchia (nod next)care e mai buna
-                snap.greenEdge =Edge(nod, next, f.cost)
+                snap.greenEdge = Edge(nod, next, f.cost)
                 emit(snap.copy())
                 delay(1.seconds)
                 t[next]=nod
