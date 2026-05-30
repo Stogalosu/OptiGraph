@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,15 +30,22 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
@@ -45,6 +53,7 @@ import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
 import ro.go.stecker.optigraph.algs.DijkstraUiState
 import ro.go.stecker.optigraph.algs.KruskalUiState
+import ro.go.stecker.optigraph.data.Edge
 import ro.go.stecker.optigraph.ui.SelectionMode
 import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.data.containsEdge
@@ -58,7 +67,7 @@ import ro.go.stecker.optigraph.ui.layout.CircularLayout
 import ro.go.stecker.optigraph.ui.navigation.GraphNavBar
 import ro.go.stecker.optigraph.ui.navigation.GraphTopAppBar
 import ro.go.stecker.optigraph.ui.navigation.MainScreenNavHost
-import kotlin.math.atan
+import kotlin.math.atan2
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -103,9 +112,21 @@ fun MainScreen(
         val nodeRadiusDp = 16.dp
         val nodeRadiusPx = with(density) { nodeRadiusDp.toPx() }
         var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-        val edgeColor =
-            if(isSystemInDarkTheme()) Color.White
+        val defaultEdgeColor =
+            if (isSystemInDarkTheme()) Color.White
             else Color.Black
+
+        fun edgeColor(edge: Edge): Color {
+            return if (uiState.isDijkstraTab()) dijkstraUiState.getEdgeColor(edge) ?: defaultEdgeColor
+            else if (uiState.isKruskalTab()) kruskalUiState.getEdgeColor(edge) ?: defaultEdgeColor
+            else defaultEdgeColor
+        }
+
+        val backgroundColor =
+            if(isSystemInDarkTheme()) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surface
+
+        val textMeasurer = rememberTextMeasurer()
 
         val offsets = remember {
             MutableList(200) { mutableStateOf(Offset(-nodeRadiusPx, -nodeRadiusPx)) }
@@ -154,8 +175,8 @@ fun MainScreen(
         }
 
         LaunchedEffect(uiState.nodes, uiState.edges) {
-            offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
             if(!uiState.hasKruskalRun || !uiState.isKruskalTab()) {
+                offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
                 viewModel.resetDijkstra()
                 viewModel.resetKruskal()
             }
@@ -163,7 +184,7 @@ fun MainScreen(
 
         LaunchedEffect(uiState.destination, uiState.selectedEditTab, uiState.selectedAlgorithmTab) {
             delay(100.milliseconds)
-            /*TODO*/
+            /*TODO ANIMATIONS*/
             viewModel.setSelectedNode(0)
             viewModel.toggleSelectionMode(uiState.selectionMode)
         }
@@ -219,8 +240,8 @@ fun MainScreen(
                         modifier = Modifier
                             .padding(nodeRadiusDp)
                     ) {
-                        val rectWidth = with(density) { 32.dp.toPx() }
-                        val rectHeight = with(density) { 16.dp.toPx() }
+                        val rectWidth = with(density) { 20.dp.toPx() }
+                        val rectHeight = with(density) { 20.dp.toPx() }
 
                         for (edge in uiState.edges) {
                             val coords1 = Offset(
@@ -246,11 +267,7 @@ fun MainScreen(
                             drawLine(
                                 start = coords1,
                                 end = coords2,
-                                color =
-                                    if(uiState.isDijkstraTab()) dijkstraUiState.getEdgeColor(edge) ?: edgeColor
-                                    else if(uiState.isKruskalTab()) kruskalUiState.getEdgeColor(edge) ?: edgeColor
-                                    else edgeColor
-                                ,
+                                color = edgeColor(edge, ),
                                 strokeWidth = 5F
                             )
 
@@ -261,15 +278,53 @@ fun MainScreen(
                                 rectCenterY / 2 - rectHeight / 2
                             )
 
+                            val rectDegrees = atan2((coords2.y - coords1.y), (coords2.x - coords1.x)) * (180f / Math.PI.toFloat())
                             rotate(
-                                degrees = atan((coords2.y - coords1.y) / (coords2.x - coords1.x)) * (180f / Math.PI.toFloat()),
+                                degrees = rectDegrees,
                                 pivot = Offset(rectOffset.x + rectWidth / 2, rectOffset.y + rectHeight / 2)
                             ) {
                                 drawRoundRect(
-                                    color = Color.Red,
+                                    color = backgroundColor,
                                     topLeft = rectOffset,
                                     size = Size(rectWidth, rectHeight),
                                     cornerRadius = CornerRadius(5f, 5f)
+                                )
+                                drawRoundRect(
+                                    color = edgeColor(edge),
+                                    topLeft = rectOffset,
+                                    size = Size(rectWidth, rectHeight),
+                                    cornerRadius = CornerRadius(5f, 5f),
+                                    style = Stroke(width = 5F),
+                                )
+                            }
+
+                            val textDegrees =
+                                if(90 < rectDegrees) rectDegrees - 180
+                                else if(rectDegrees < -90) rectDegrees + 180
+                                else rectDegrees
+
+                            rotate(
+                                degrees = textDegrees,
+                                pivot = Offset(rectOffset.x + rectWidth / 2, rectOffset.y + rectHeight / 2)
+                            ) {
+                                val textLayoutResult = textMeasurer.measure(
+                                    text = AnnotatedString(edge.c.toString()),
+                                    style = TextStyle(
+                                        color = defaultEdgeColor,
+                                        fontSize = 14.sp,
+                                        textDecoration =
+                                            if(edge.c == 6 || edge.c == 9) TextDecoration.Underline
+                                            else TextDecoration.None
+                                    )
+                                )
+
+                                drawText(
+                                    textLayoutResult = textLayoutResult,
+                                    topLeft = Offset(
+                                        rectOffset.x + (rectWidth - textLayoutResult.size.width) / 2,
+                                        rectOffset.y + (rectHeight - textLayoutResult.size.height) / 2
+                                    ),
+                                    color = defaultEdgeColor
                                 )
                             }
                         }

@@ -1,6 +1,7 @@
 package ro.go.stecker.optigraph.ui.screens.main
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,7 +89,12 @@ fun AlgorithmMenu(
                                     )
 
                                 AlgorithmMenuTabs.Kruskal -> {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .clickable { viewModel.toggleKruskalDeleteEdges() }
+                                    ) {
                                         Checkbox(
                                             checked = uiState.kruskalDeleteEdges,
                                             onCheckedChange = { viewModel.toggleKruskalDeleteEdges() }
@@ -278,11 +284,12 @@ fun AlgorithmMenu(
                                         }
                                     } else {
                                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                            Button(
-                                                onClick = { viewModel.restoreGraph() }
-                                            ) {
-                                                Text(text = stringResource(R.string.restore_graph))
-                                            }
+                                            if(uiState.kruskalDeleteEdges)
+                                                Button(
+                                                    onClick = { viewModel.restoreGraph() }
+                                                ) {
+                                                    Text(text = stringResource(R.string.restore_graph))
+                                                }
                                             Button(
                                                 onClick = { viewModel.resetKruskal() },
                                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
