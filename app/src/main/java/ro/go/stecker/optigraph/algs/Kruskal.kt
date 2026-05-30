@@ -3,9 +3,10 @@ package ro.go.stecker.optigraph.algs
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import ro.go.stecker.optigraph.data.Edge
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 
 class KruskalUiState(
     var cost: Int = 0,
@@ -60,7 +61,7 @@ private fun root(x:Int): Int{
     return t[x]
 }
 
-fun kruskal(n: Int, v: MutableList<Edge>): Flow<KruskalUiState> = flow {
+fun kruskal(n: Int, v: MutableList<Edge>, delayFlow: StateFlow<Duration>): Flow<KruskalUiState> = flow {
     val snap = KruskalUiState()
     t=IntArray(n+1)
     for(i in 1..n){
@@ -76,16 +77,16 @@ fun kruskal(n: Int, v: MutableList<Edge>): Flow<KruskalUiState> = flow {
             t[ra]=rb
             snap.greenEdge = muchie
             emit(snap.copy())
-            delay(1.seconds)
+            delay(delayFlow.value)
             cost+=cm
         } else {
             snap.redEdge = muchie
             emit(snap.copy())
-            delay(1.seconds)
+            delay(delayFlow.value)
         }
         snap.nextIteration(cost, t.toList())
         emit(snap.copy())
-        delay(1.seconds)
+        delay(delayFlow.value)
     }
     snap.finish()
     emit(snap.copy())

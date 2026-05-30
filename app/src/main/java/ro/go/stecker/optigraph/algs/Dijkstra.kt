@@ -3,12 +3,13 @@ package ro.go.stecker.optigraph.algs
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import ro.go.stecker.optigraph.data.Edge
 import ro.go.stecker.optigraph.data.connectsNodes
 import ro.go.stecker.optigraph.data.containsEdge
 import java.util.PriorityQueue
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 
 data class Muchie (
     var nod:Int,
@@ -61,7 +62,7 @@ class DijkstraUiState(
     }
 }
 
-fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
+fun dijkstra(v:MutableList<Edge>, n:Int, st:Int, delayFlow: StateFlow<Duration>): Flow<DijkstraUiState> = flow {
     val a=Array(n+1){mutableListOf<Muchie>()}
     for(muc in v){
         a[muc.a].add(Muchie(muc.b,muc.c))
@@ -81,7 +82,7 @@ fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
         for(f in a[nod]){
             snap.nextIteration(nod, t.toMutableList(), d.toMutableList())
             emit(snap.copy())
-            delay(1.seconds)
+            delay(delayFlow.value)
             val next =f.nod
             val nextcost=f.cost + d[nod]
             if(nextcost<d[next]){
@@ -90,12 +91,12 @@ fun dijkstra(v:MutableList<Edge>, n:Int, st:Int): Flow<DijkstraUiState> = flow {
                 /// gasim muchia (nod next)care e mai buna
                 snap.greenEdge = Edge(nod, next, f.cost)
                 emit(snap.copy())
-                delay(1.seconds)
+                delay(delayFlow.value)
                 t[next]=nod
             } else {
                 snap.redEdge = Edge(nod, next, f.cost)
                 emit(snap.copy())
-                delay(1.seconds)
+                delay(delayFlow.value)
             }
         }
     }

@@ -17,11 +17,13 @@ import ro.go.stecker.optigraph.algs.kruskal
 import ro.go.stecker.optigraph.algs.randomGraphGenerator
 import ro.go.stecker.optigraph.algs.randomTreeGenerator
 import ro.go.stecker.optigraph.data.Edge
+import ro.go.stecker.optigraph.data.connectsNodes
 import ro.go.stecker.optigraph.data.decrementFirstNode
 import ro.go.stecker.optigraph.data.decrementSecondNode
 import ro.go.stecker.optigraph.ui.navigation.GraphMenus
 import ro.go.stecker.optigraph.ui.screens.main.AlgorithmMenuTabs
 import ro.go.stecker.optigraph.ui.screens.main.EditMenuTabs
+import kotlin.time.Duration.Companion.seconds
 
 class GraphViewModel(): ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
@@ -86,10 +88,7 @@ class GraphViewModel(): ViewModel() {
                 edgeList.add(edge)
             }
             else if(_uiState.value.selectionMode == SelectionMode.RemoveEdge)
-                edgeList.removeIf {
-                    (it.a == _uiState.value.selectedNode && it.b == node) ||
-                    (it.b == _uiState.value.selectedNode && it.a == node)
-                }
+                edgeList.removeIf { it.connectsNodes(_uiState.value.selectedNode, node) }
 
             _uiState.update { it.copy(edges = edgeList, selectedNode = 0, selectionMode = SelectionMode.None) }
         }
@@ -124,13 +123,15 @@ class GraphViewModel(): ViewModel() {
         return true
     }
 
+    var dijkstraDelay = MutableStateFlow(1.seconds)
     fun startDijkstra(root: Int) {
         _uiState.update { it.copy(hasDijkstraRun = true, dijkstraRoot = root) }
         dijkstraJob = viewModelScope.launch {
             dijkstra(
                 _uiState.value.edges,
                 _uiState.value.nodes,
-                _uiState.value.dijkstraRoot
+                _uiState.value.dijkstraRoot,
+                dijkstraDelay
             ).stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(),
@@ -139,6 +140,11 @@ class GraphViewModel(): ViewModel() {
                 _dijkstraUiState.value = newState
             }
         }
+    }
+
+    fun skipDijkstra() {
+        dijkstraDelay.value = 0.seconds
+        dijkstraJob.invokeOnCompletion { dijkstraDelay.value = 1.seconds }
     }
 
     fun stopDijkstra() {
@@ -152,12 +158,14 @@ class GraphViewModel(): ViewModel() {
         _dijkstraUiState.value = DijkstraUiState()
     }
 
+    var kruskalDelay = MutableStateFlow(1.seconds)
     fun startKruskal() {
         _uiState.update { it.copy(hasKruskalRun = true) }
         kruskalJob = viewModelScope.launch {
             kruskal(
                 _uiState.value.nodes,
-                _uiState.value.edges
+                _uiState.value.edges,
+                kruskalDelay
             ).stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(),
@@ -166,6 +174,11 @@ class GraphViewModel(): ViewModel() {
                 _kruskalUiState.value = newState
             }
         }
+    }
+
+    fun skipKruskal() {
+        kruskalJob.invokeOnCompletion { kruskalDelay.value = 1.seconds }
+        kruskalDelay.value = 0.seconds
     }
 
     fun stopKruskal() {

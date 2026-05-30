@@ -61,4 +61,6 @@
     <string name="previous_node">Previous node</string>
     <string name="enter_node_dijkstra">From node %1$s to node: </string>
     <string name="path_is">Path: %1$s</string>
+    <string name="skip_to_end">Skip to the end</string>
+    <string name="delete_unused_edges">Delete unused edges</string>
 </resources>

@@ -147,11 +147,18 @@ fun AlgorithmMenu(
                                         text = stringResource(R.string.algorithm_is_running),
                                         fontWeight = FontWeight.Bold
                                     )
-                                    Button(
-                                        onClick = { viewModel.stopDijkstra() },
-                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                                    ) {
-                                        Text(text = stringResource(R.string.stop))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        Button(
+                                            onClick = { viewModel.skipDijkstra() }
+                                        ) {
+                                            Text(text = stringResource(R.string.skip_to_end))
+                                        }
+                                        Button(
+                                            onClick = { viewModel.stopDijkstra() },
+                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                        ) {
+                                            Text(text = stringResource(R.string.stop))
+                                        }
                                     }
                                 } else {
                                     if(uiState.nodes > 6) {
@@ -247,11 +254,18 @@ fun AlgorithmMenu(
                                             text = stringResource(R.string.algorithm_is_running),
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Button(
-                                            onClick = { viewModel.stopKruskal() },
-                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                                        ) {
-                                            Text(text = stringResource(R.string.stop))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            Button(
+                                                onClick = { viewModel.skipKruskal() }
+                                            ) {
+                                                Text(text = stringResource(R.string.skip_to_end))
+                                            }
+                                            Button(
+                                                onClick = { viewModel.stopKruskal() },
+                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                            ) {
+                                                Text(text = stringResource(R.string.stop))
+                                            }
                                         }
                                     } else {
                                         Button(
