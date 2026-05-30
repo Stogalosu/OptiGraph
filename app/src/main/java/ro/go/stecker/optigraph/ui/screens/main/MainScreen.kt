@@ -1,6 +1,8 @@
 package ro.go.stecker.optigraph.ui.screens.main
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -48,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ro.go.stecker.optigraph.R
 import ro.go.stecker.optigraph.algs.DijkstraUiState
@@ -69,7 +70,6 @@ import ro.go.stecker.optigraph.ui.navigation.GraphTopAppBar
 import ro.go.stecker.optigraph.ui.navigation.MainScreenNavHost
 import kotlin.math.atan2
 import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.milliseconds
 
 val discardRed = Color(224, 65, 65)
 
@@ -89,7 +89,7 @@ fun MainScreen(
     Scaffold(
         topBar = {
             GraphTopAppBar(
-                title = stringResource(R.string.main_screen),
+                title = stringResource(R.string.app_name),
                 canGoBack = uiState.selectionMode != SelectionMode.None,
                 onBackClick = { viewModel.toggleSelectionMode(uiState.selectionMode) },
                 onDeleteGraphClick = { deleteGraphDialog = true }
@@ -183,8 +183,6 @@ fun MainScreen(
         }
 
         LaunchedEffect(uiState.destination, uiState.selectedEditTab, uiState.selectedAlgorithmTab) {
-            delay(100.milliseconds)
-            /*TODO ANIMATIONS*/
             viewModel.setSelectedNode(0)
             viewModel.toggleSelectionMode(uiState.selectionMode)
         }
@@ -228,8 +226,9 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .animateContentSize(animationSpec = tween())
         ) {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f).animateContentSize(animationSpec = tween()))
             if(uiState.nodes != 0) {
                 Box(
                     modifier = Modifier.onSizeChanged {

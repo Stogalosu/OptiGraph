@@ -1,5 +1,8 @@
 package ro.go.stecker.optigraph.ui.screens.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,6 +43,7 @@ import ro.go.stecker.optigraph.ui.GenerationType
 import ro.go.stecker.optigraph.ui.SelectionMode
 import ro.go.stecker.optigraph.ui.UiState
 import ro.go.stecker.optigraph.ui.GraphViewModel
+import ro.go.stecker.optigraph.ui.navigation.GraphMenus
 
 enum class EditMenuTabs {
     Manual,
@@ -57,37 +61,42 @@ fun EditMenu(
         stringResource(R.string.automatic)
     )
 
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
+    AnimatedVisibility(
+        visible = uiState.destination == GraphMenus.Edit
     ) {
-        Column() {
-            when(uiState.selectedEditTab) {
-                EditMenuTabs.Manual ->
-                    ManualEditMenu(
-                        snackbarHostState = snackbarHostState,
-                        uiState = uiState,
-                        viewModel = viewModel
-                    )
-                EditMenuTabs.Automatic ->
-                    AutomaticEditMenu(
-                        snackbarHostState = snackbarHostState,
-                        uiState = uiState,
-                        viewModel = viewModel
-                    )
-            }
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Column() {
+                when (uiState.selectedEditTab) {
+                    EditMenuTabs.Manual ->
+                        ManualEditMenu(
+                            snackbarHostState = snackbarHostState,
+                            uiState = uiState,
+                            viewModel = viewModel
+                        )
 
-            PrimaryTabRow(
-                selectedTabIndex = uiState.selectedEditTab.ordinal,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                divider = {}
-            ) {
-                EditMenuTabs.entries.forEachIndexed { index, tab ->
-                    Tab(
-                        selected = uiState.selectedEditTab.ordinal == index,
-                        onClick = { viewModel.selectEditTab(EditMenuTabs.entries[index]) },
-                        text = { Text(text = tabsText[index]) }
-                    )
+                    EditMenuTabs.Automatic ->
+                        AutomaticEditMenu(
+                            snackbarHostState = snackbarHostState,
+                            uiState = uiState,
+                            viewModel = viewModel
+                        )
+                }
+
+                PrimaryTabRow(
+                    selectedTabIndex = uiState.selectedEditTab.ordinal,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    divider = {}
+                ) {
+                    EditMenuTabs.entries.forEachIndexed { index, tab ->
+                        Tab(
+                            selected = uiState.selectedEditTab.ordinal == index,
+                            onClick = { viewModel.selectEditTab(EditMenuTabs.entries[index]) },
+                            text = { Text(text = tabsText[index]) }
+                        )
+                    }
                 }
             }
         }
@@ -109,7 +118,9 @@ fun ManualEditMenu(
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp)
+        modifier = Modifier
+            .padding(vertical = 12.dp, horizontal = 24.dp)
+            .animateContentSize(animationSpec = tween())
     ) {
         when(uiState.selectionMode) {
             SelectionMode.None ->

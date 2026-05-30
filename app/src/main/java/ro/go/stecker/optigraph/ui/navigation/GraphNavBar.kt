@@ -33,7 +33,8 @@ fun GraphNavBar(
                 selected = uiState.destination == destination,
                 onClick = {
                     viewModel.selectDestination(destination)
-                    mainScreenNavController.navigate(destination.name)
+                    if(mainScreenNavController.currentDestination?.route != destination.name)
+                        mainScreenNavController.navigate(destination.name)
                 },
                 icon = { Icon(painter = menuIcons[index], contentDescription = null) },
                 label = { Text(text = menuLabels[index]) }

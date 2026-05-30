@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Opti Graph</string>
+    <string name="app_name">OptiGraph</string>
     <string name="main_screen">Main Screen</string>
     <string name="edit">Edit</string>
     <string name="algorithms">Algorithms</string>
