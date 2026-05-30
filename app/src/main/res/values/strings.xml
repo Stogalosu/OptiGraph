@@ -63,4 +63,5 @@
     <string name="path_is">Path: %1$s</string>
     <string name="skip_to_end">Skip to the end</string>
     <string name="delete_unused_edges">Delete unused edges</string>
+    <string name="restore_graph">Restore graph</string>
 </resources>

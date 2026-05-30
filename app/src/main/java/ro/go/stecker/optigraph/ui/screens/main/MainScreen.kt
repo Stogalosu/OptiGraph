@@ -155,8 +155,10 @@ fun MainScreen(
 
         LaunchedEffect(uiState.nodes, uiState.edges) {
             offsets.forEach { it.value = Offset(-nodeRadiusPx, -nodeRadiusPx) }
-            viewModel.resetDijkstra()
-            viewModel.resetKruskal()
+            if(!uiState.hasKruskalRun || !uiState.isKruskalTab()) {
+                viewModel.resetDijkstra()
+                viewModel.resetKruskal()
+            }
         }
 
         LaunchedEffect(uiState.destination, uiState.selectedEditTab, uiState.selectedAlgorithmTab) {

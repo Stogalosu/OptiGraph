@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -86,12 +87,20 @@ fun AlgorithmMenu(
                                         fontWeight = FontWeight.Bold
                                     )
 
-                                AlgorithmMenuTabs.Kruskal ->
+                                AlgorithmMenuTabs.Kruskal -> {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = uiState.kruskalDeleteEdges,
+                                            onCheckedChange = { viewModel.toggleKruskalDeleteEdges() }
+                                        )
+                                        Text(text = stringResource(R.string.delete_unused_edges))
+                                    }
                                     Button(
                                         onClick = { viewModel.startKruskal() }
                                     ) {
                                         Text(text = stringResource(R.string.run_kruskal))
                                     }
+                                }
                             }
                         } else {
                             val algorithm =
@@ -268,11 +277,18 @@ fun AlgorithmMenu(
                                             }
                                         }
                                     } else {
-                                        Button(
-                                            onClick = { viewModel.resetKruskal() },
-                                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                                        ) {
-                                            Text(text = stringResource(R.string.reset))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                            Button(
+                                                onClick = { viewModel.restoreGraph() }
+                                            ) {
+                                                Text(text = stringResource(R.string.restore_graph))
+                                            }
+                                            Button(
+                                                onClick = { viewModel.resetKruskal() },
+                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                                            ) {
+                                                Text(text = stringResource(R.string.reset))
+                                            }
                                         }
                                     }
                                 }

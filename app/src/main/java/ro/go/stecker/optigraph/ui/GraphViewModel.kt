@@ -172,12 +172,24 @@ class GraphViewModel(): ViewModel() {
                 initialValue = KruskalUiState()
             ).collect { newState ->
                 _kruskalUiState.value = newState
+                if(_uiState.value.kruskalDeleteEdges && kruskalDelay.value > 0.seconds) {
+                    val edgeList = _uiState.value.edges.toMutableList()
+                    edgeList.removeIf { it == _kruskalUiState.value.edgeToRemove }
+                    _uiState.update { it.copy(edges = edgeList) }
+                }
+                if(newState.finished) kruskalJob.cancel()
             }
         }
     }
 
     fun skipKruskal() {
         kruskalJob.invokeOnCompletion { kruskalDelay.value = 1.seconds }
+        if(_uiState.value.kruskalDeleteEdges)
+            kruskalJob.invokeOnCompletion {
+                val edgeList = _uiState.value.edges.toMutableList()
+                edgeList.removeIf { _kruskalUiState.value.removedEdges.contains(it) }
+                _uiState.update { it.copy(edges = edgeList) }
+            }
         kruskalDelay.value = 0.seconds
     }
 
@@ -190,5 +202,18 @@ class GraphViewModel(): ViewModel() {
         _uiState.update { it.copy(hasKruskalRun = false) }
         stopKruskal()
         _kruskalUiState.value = KruskalUiState()
+    }
+
+    fun toggleKruskalDeleteEdges() {
+        _uiState.update { it.copy(kruskalDeleteEdges = !it.kruskalDeleteEdges) }
+    }
+
+    fun restoreGraph() {
+        val edgeList = _uiState.value.edges.toMutableList()
+        _kruskalUiState.value.removedEdges.forEach {
+            edgeList.add(it)
+        }
+        _uiState.update { it.copy(edges = edgeList) }
+        resetKruskal()
     }
 }

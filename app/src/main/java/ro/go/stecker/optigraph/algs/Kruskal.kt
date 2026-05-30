@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import ro.go.stecker.optigraph.data.Edge
+import ro.go.stecker.optigraph.data.connectsNodes
 import kotlin.time.Duration
 
 class KruskalUiState(
@@ -14,7 +15,9 @@ class KruskalUiState(
     var finished: Boolean = false,
     var greenEdge: Edge = Edge(),
     var redEdge: Edge = Edge(),
-    var blueEdges: MutableList<Edge> = mutableListOf()
+    var blueEdges: MutableList<Edge> = mutableListOf(),
+    var edgeToRemove: Edge = Edge(),
+    var removedEdges: MutableList<Edge> = mutableListOf()
 ) {
     fun copy() = KruskalUiState(
         cost = cost,
@@ -22,7 +25,9 @@ class KruskalUiState(
         finished = finished,
         greenEdge = greenEdge,
         redEdge = redEdge,
-        blueEdges = blueEdges.toMutableList()
+        blueEdges = blueEdges.toMutableList(),
+        edgeToRemove = edgeToRemove,
+        removedEdges = removedEdges.toMutableList()
     )
 
     fun nextIteration(newCost: Int, parentList: List<Int>) {
@@ -30,6 +35,9 @@ class KruskalUiState(
         parents = parentList
         blueEdges.add(greenEdge)
         greenEdge = Edge()
+        edgeToRemove = redEdge
+        if(!edgeToRemove.connectsNodes(0, 0))
+            removedEdges.add(edgeToRemove)
         redEdge = Edge()
     }
 
